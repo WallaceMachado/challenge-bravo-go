@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"challeng-bravo/src/router/controllers"
+	"challeng-bravo/src/controllers"
 	"net/http"
 )
 

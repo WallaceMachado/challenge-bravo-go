@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -19,8 +18,6 @@ func SetUp(r *mux.Router) *mux.Router {
 	for _, router := range routes {
 		r.HandleFunc(router.URI, router.Funcao).Methods(router.Metodo)
 	}
-
-	fmt.Println("currency teste")
 
 	return r
 }

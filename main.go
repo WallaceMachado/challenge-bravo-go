@@ -1,6 +1,7 @@
 package main
 
 import (
+	"challeng-bravo/src/config"
 	"challeng-bravo/src/router"
 	"fmt"
 	"log"
@@ -8,9 +9,10 @@ import (
 )
 
 func main() {
+	config.Loader()
 
-	fmt.Println("Escutando na porta 3000")
+	fmt.Println("Server is running!")
 	r := router.Generate()
 
-	log.Fatal(http.ListenAndServe(":5000", r))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 }

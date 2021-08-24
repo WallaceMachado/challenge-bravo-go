@@ -11,8 +11,8 @@ import (
 func main() {
 	config.Loader()
 
-	fmt.Println("Server is running!")
 	r := router.Generate()
 
+	fmt.Println("Server is running!")
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 }

@@ -13,6 +13,8 @@ var (
 	// StringConnectionDB é a string de conexão com o banco de dados
 	StringConnectionDB = ""
 
+	DB_Name = ""
+
 	// Porta onde a API vai estar rodando
 	Port = 0
 )
@@ -24,6 +26,8 @@ func Loader() {
 	if erro = godotenv.Load(); erro != nil {
 		log.Fatal(erro)
 	}
+
+	DB_Name = os.Getenv("DB_NAME")
 
 	//passando de string para inteiro
 	Port, erro = strconv.Atoi(os.Getenv("API_PORT"))

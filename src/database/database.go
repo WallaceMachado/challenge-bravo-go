@@ -1,31 +1,25 @@
 package database
 
 import (
-	"challeng-bravo/src/config"
 	"context"
 	"fmt"
-	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetCollection(collection string) (*mongo.Collection, error) {
+func Db() *mongo.Client {
 
-	client, err := mongo.NewClient(options.Client().ApplyURI(config.StringConnectionDB))
-
+	clientOptions := options.Client().ApplyURI("mongodb+srv://admin:root@cluster0.pamgw.mongodb.net") // Connect to //MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		fmt.Println("erro1")
-		return nil, err
+		fmt.Println("erro", err)
 	}
-
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = client.Connect(ctx)
-
+	// Check the connection
+	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		fmt.Println("erro2")
-		return nil, err
+		fmt.Println("erro", err)
 	}
-
-	return client.Database(config.DB_Name).Collection(collection), nil
+	fmt.Println("Connected to MongoDB!")
+	return client
 }

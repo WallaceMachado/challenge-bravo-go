@@ -8,11 +8,8 @@ import (
 	"net/http"
 )
 
-func init() {
-	config.Loader()
-}
-
 func main() {
+	config.Loader()
 
 	r := router.Generate()
 

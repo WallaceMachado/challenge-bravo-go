@@ -1,6 +1,7 @@
 package database
 
 import (
+	"challeng-bravo/src/config"
 	"context"
 	"fmt"
 
@@ -9,8 +10,9 @@ import (
 )
 
 func Db() *mongo.Client {
+	config.Loader() // carregar variáveis de ambiente
 
-	clientOptions := options.Client().ApplyURI("mongodb+srv://admin:root@cluster0.pamgw.mongodb.net") // Connect to //MongoDB
+	clientOptions := options.Client().ApplyURI(config.StringConnectionDB) // Connect to //MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		fmt.Println("erro", err)

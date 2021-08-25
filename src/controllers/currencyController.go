@@ -15,11 +15,11 @@ func GetAllCurrencies(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("erro")
 	}
 
-	JSON(w, http.StatusOK, dados)
+	ResponseJSON(w, http.StatusOK, dados)
 
 }
 
-func JSON(w http.ResponseWriter, statusCode int, dados interface{}) {
+func ResponseJSON(w http.ResponseWriter, statusCode int, dados interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 

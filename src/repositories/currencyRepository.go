@@ -2,35 +2,35 @@ package repositories
 
 import (
 	"challeng-bravo/src/database"
+	"challeng-bravo/src/models"
 	"context"
 	"fmt"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var userCollection = database.Db().Database("chBravoDb").Collection("currencies") // get collection "currencies" from db() which returns *mongo.Client
+var currencyCollection = database.Db().Database("chBravoDb").Collection("currencies") // get collection "currencies" from db() which returns *mongo.Client
 
-func ListAll() ([]primitive.M, error) {
-	var results []primitive.M                                   //slice for multiple documents
-	cur, err := userCollection.Find(context.TODO(), bson.D{{}}) //returns a *mongo.Cursor
+func ListAll() ([]models.Currency, error) {
+	var currencies []models.Currency
+	result, err := currencyCollection.Find(context.TODO(), bson.D{{}}) //returns a *mongo.Cursor
 	if err != nil {
 
 		fmt.Println(err)
 
 	}
-	for cur.Next(context.TODO()) { //Next() gets the next document for corresponding cursor
+	for result.Next(context.TODO()) { //Next() gets the next document for corresponding cursor
 
-		var elem primitive.M
-		err := cur.Decode(&elem)
+		var currency models.Currency
+		err := result.Decode(&currency)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		results = append(results, elem) // appending document pointed by Next()
+		currencies = append(currencies, currency) // appending document pointed by Next()
 	}
-	cur.Close(context.TODO()) // close the cursor once stream of documents has exhausted
+	result.Close(context.TODO()) // close the cursor once stream of documents has exhausted
 
-	return results, nil
+	return currencies, nil
 }

@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-	config.Loader()
 
 	r := router.Generate()
 

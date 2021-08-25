@@ -4,8 +4,6 @@ import (
 	"challeng-bravo/src/database"
 	"challeng-bravo/src/models"
 	"context"
-	"fmt"
-	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -17,7 +15,7 @@ func ListAll() ([]models.Currency, error) {
 	result, err := currencyCollection.Find(context.TODO(), bson.D{{}}) //returns a *mongo.Cursor
 	if err != nil {
 
-		fmt.Println(err)
+		return nil, err
 
 	}
 	for result.Next(context.TODO()) { //Next() gets the next document for corresponding cursor
@@ -25,7 +23,7 @@ func ListAll() ([]models.Currency, error) {
 		var currency models.Currency
 		err := result.Decode(&currency)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		currencies = append(currencies, currency) // appending document pointed by Next()

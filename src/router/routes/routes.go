@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"challeng-bravo/src/middleware"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -16,7 +17,7 @@ func SetUp(r *mux.Router) *mux.Router {
 	routes := routesCurrency
 
 	for _, router := range routes {
-		r.HandleFunc(router.URI, router.Funcao).Methods(router.Metodo)
+		r.HandleFunc(router.URI, middleware.Loader(router.Funcao)).Methods(router.Metodo)
 	}
 
 	return r

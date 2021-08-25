@@ -3,8 +3,8 @@ package models
 import "time"
 
 //Usuario representa um usuário utilizando a rede social
-type Usuario struct {
-	ID         string    `json:"id,omitempty"`
+type Currency struct {
+	ID         string    `bson:"_id,omitempty" json:"id,omitempty"`
 	Name       string    `json:"name"`
 	Code       string    `json:"code"`
 	ValueInUSD float64   `json:"valueInUSD"`

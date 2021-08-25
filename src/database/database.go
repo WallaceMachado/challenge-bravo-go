@@ -3,6 +3,7 @@ package database
 import (
 	"challeng-bravo/src/config"
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,6 +15,7 @@ func GetCollection(collection string) (*mongo.Collection, error) {
 	client, err := mongo.NewClient(options.Client().ApplyURI(config.StringConnectionDB))
 
 	if err != nil {
+		fmt.Println("erro1")
 		return nil, err
 	}
 
@@ -21,6 +23,7 @@ func GetCollection(collection string) (*mongo.Collection, error) {
 	err = client.Connect(ctx)
 
 	if err != nil {
+		fmt.Println("erro2")
 		return nil, err
 	}
 

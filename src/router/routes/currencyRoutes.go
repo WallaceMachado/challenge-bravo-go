@@ -8,7 +8,7 @@ import (
 var routesCurrency = []Router{
 	{
 		URI:    "/currency",
-		Metodo: http.MethodPost,
+		Metodo: http.MethodGet,
 		Funcao: controllers.GetAllCurrencies,
 	},
 }

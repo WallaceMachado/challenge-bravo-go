@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -15,7 +14,7 @@ var (
 
 	DB_Name = ""
 
-	// Porta onde a API vai estar rodando
+	// Port onde a API vai estar rodando
 	Port = 0
 )
 
@@ -35,10 +34,6 @@ func Loader() {
 		Port = 9000
 	}
 
-	StringConnectionDB = fmt.Sprintf("mongodb+srv://%s:%s@cluster0.pamgw.mongodb.net/%s",
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASS"),
-		os.Getenv("DB_NAME"),
-	)
+	StringConnectionDB = os.Getenv("STRING_CONNECTION_DB")
 
 }

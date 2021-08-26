@@ -3,7 +3,6 @@ package requests
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -27,7 +26,6 @@ type ApiHGBrasilCurrency struct {
 	Variation float64 `json:"Variation"`
 }
 
-// FazerRequisicaoComAutenticacao é utilizada para colocar o token na requisição
 func APIHGBrasil() (ApiHGBrasil, error) {
 	responseApiHGBrasil := ApiHGBrasil{}
 
@@ -48,7 +46,7 @@ func APIHGBrasil() (ApiHGBrasil, error) {
 
 	err = json.NewDecoder(response.Body).Decode(&responseApiHGBrasil)
 	if err != nil {
-		log.Fatal(err)
+		return responseApiHGBrasil, err
 	}
 
 	fmt.Println(responseApiHGBrasil.Results.Currencies)

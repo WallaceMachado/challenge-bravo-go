@@ -156,10 +156,11 @@ func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 
 func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 
-	response, err := requests.APIHGBrasil()
+	responseApiHGBrasil, err := requests.APIHGBrasil()
+	resposeApiCoinbase, err := requests.APICoinbase()
 
-	fmt.Println(response.Results.Currencies.EUR.Sell, err)
+	fmt.Println(responseApiHGBrasil.Results.Currencies.EUR.Sell, err, resposeApiCoinbase)
 
-	responses.JSON(w, http.StatusOK, response)
+	responses.JSON(w, http.StatusOK, resposeApiCoinbase)
 
 }

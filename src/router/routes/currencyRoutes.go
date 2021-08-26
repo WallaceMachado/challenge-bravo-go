@@ -26,4 +26,10 @@ var routesCurrency = []Router{
 		Metodo: http.MethodDelete,
 		Funcao: controllers.DeleteCurrency,
 	},
+
+	{
+		URI:    "/currency/conversion",
+		Metodo: http.MethodGet,
+		Funcao: controllers.ConversionOfCurrency,
+	},
 }

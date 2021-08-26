@@ -4,7 +4,6 @@ import (
 	"challeng-bravo/src/database"
 	"challeng-bravo/src/models"
 	"context"
-	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -36,6 +35,21 @@ func ListAll() ([]models.Currency, error) {
 	return currencies, nil
 }
 
+func GetByCode(code string) (models.Currency, error) {
+	var currency models.Currency
+
+	filter := bson.M{"code": code}
+
+	if err := currencyCollection.FindOne(context.TODO(), filter).Decode(&currency); err != nil {
+
+		return currency, err
+
+	}
+
+	return currency, nil
+
+}
+
 func Create(currency models.Currency) (interface{}, error) {
 
 	timeNow := time.Now()
@@ -49,14 +63,11 @@ func Create(currency models.Currency) (interface{}, error) {
 
 	}
 
-	fmt.Println(insertResult.InsertedID)
 	return insertResult, nil // return the //mongodb ID of generated document
 }
 
 // Atualizar altera as informações de um usuário no banco de dados
 func Update(currency models.Currency, ID string) error {
-
-	fmt.Println(currency.Name)
 
 	_id, err := primitive.ObjectIDFromHex(ID)
 

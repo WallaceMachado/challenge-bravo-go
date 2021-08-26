@@ -16,4 +16,9 @@ var routesCurrency = []Router{
 		Metodo: http.MethodPost,
 		Funcao: controllers.CreateCurrency,
 	},
+	{
+		URI:    "/currency/{id}",
+		Metodo: http.MethodPut,
+		Funcao: controllers.UpdateCurrency,
+	},
 }

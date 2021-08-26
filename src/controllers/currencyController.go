@@ -76,3 +76,17 @@ func UpdateCurrency(w http.ResponseWriter, r *http.Request) {
 
 	responses.JSON(w, http.StatusNoContent, nil)
 }
+
+func DeleteCurrency(w http.ResponseWriter, r *http.Request) {
+	parametros := mux.Vars(r)
+	ID := parametros["id"]
+
+	err := repositories.Delete(ID)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
+}

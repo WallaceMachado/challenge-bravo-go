@@ -75,3 +75,22 @@ func Update(currency models.Currency, ID string) error {
 
 	return nil
 }
+
+func Delete(ID string) error {
+
+	_id, err := primitive.ObjectIDFromHex(ID)
+
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": _id}
+
+	_, err = currencyCollection.DeleteOne(context.TODO(), filter)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

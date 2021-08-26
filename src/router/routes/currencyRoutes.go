@@ -21,4 +21,9 @@ var routesCurrency = []Router{
 		Metodo: http.MethodPut,
 		Funcao: controllers.UpdateCurrency,
 	},
+	{
+		URI:    "/currency/{id}",
+		Metodo: http.MethodDelete,
+		Funcao: controllers.DeleteCurrency,
+	},
 }

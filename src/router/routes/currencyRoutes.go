@@ -11,4 +11,9 @@ var routesCurrency = []Router{
 		Metodo: http.MethodGet,
 		Funcao: controllers.GetAllCurrencies,
 	},
+	{
+		URI:    "/currency",
+		Metodo: http.MethodPost,
+		Funcao: controllers.CreateCurrency,
+	},
 }

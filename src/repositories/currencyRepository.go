@@ -4,6 +4,7 @@ import (
 	"challeng-bravo/src/database"
 	"challeng-bravo/src/models"
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -31,4 +32,17 @@ func ListAll() ([]models.Currency, error) {
 	result.Close(context.TODO()) // close the cursor once stream of documents has exhausted
 
 	return currencies, nil
+}
+
+func Create(currency models.Currency) (interface{}, error) {
+
+	insertResult, err := currencyCollection.InsertOne(context.TODO(), currency)
+	if err != nil {
+
+		return nil, err
+
+	}
+
+	fmt.Println(insertResult.InsertedID)
+	return insertResult, nil // return the //mongodb ID of generated document
 }

@@ -3,6 +3,7 @@ package controllers
 import (
 	"challeng-bravo/src/models"
 	"challeng-bravo/src/repositories"
+	"challeng-bravo/src/requests"
 	"challeng-bravo/src/responses"
 	"encoding/json"
 	"fmt"
@@ -150,5 +151,15 @@ func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 	conversion.CurrencyTo.QuoteUSDUpdateAt = toCurrency.Updated_at
 
 	responses.JSON(w, http.StatusOK, conversion)
+
+}
+
+func CurrentQuote(w http.ResponseWriter, r *http.Request) {
+
+	response, err := requests.APIHGBrasil()
+
+	fmt.Println(response.Results.Currencies.EUR.Sell, err)
+
+	responses.JSON(w, http.StatusOK, response)
 
 }

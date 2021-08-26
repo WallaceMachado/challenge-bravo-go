@@ -32,4 +32,9 @@ var routesCurrency = []Router{
 		Metodo: http.MethodGet,
 		Funcao: controllers.ConversionOfCurrency,
 	},
+	{
+		URI:    "/currency/currentQuote",
+		Metodo: http.MethodGet,
+		Funcao: controllers.CurrentQuote,
+	},
 }

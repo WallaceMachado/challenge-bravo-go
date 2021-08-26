@@ -17,10 +17,10 @@ type ApiCoinbaseCrypto struct {
 	Amount   string `json:"amount"`
 }
 
-func APICoinbase() (ApiCoinbase, error) {
+func APICoinbase(crypto string) (ApiCoinbase, error) {
 	responseApiCoinbase := ApiCoinbase{}
 
-	url := "https://api.coinbase.com/v2/prices/BTC-USD/sell"
+	url := fmt.Sprintf("https://api.coinbase.com/v2/prices/%s-USD/sell", crypto)
 
 	resp, err := http.Get(url)
 	if err != nil {

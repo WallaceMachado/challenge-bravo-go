@@ -17,24 +17,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type CurrencyFromResponse struct {
-	Amount           string    `json:"amount"`
-	QuoteUSD         string    `json:"quoteUSD"`
-	QuoteUSDUpdateAt time.Time `json:"quoteUSDUpdateAt"`
-}
-
-type CurrencyToResponse struct {
-	ConvertedAmount  string    `json:"convertedAmount"`
-	QuoteUSD         string    `json:"quoteUSD"`
-	QuoteUSDUpdateAt time.Time `json:"quoteUSDUpdateAt"`
-}
-
-type CurrencyConversionResponse struct {
-	ConvertedAmount float64
-	CurrencyFrom    CurrencyFromResponse
-	CurrencyTo      CurrencyToResponse
-}
-
 func GetAllCurrencies(w http.ResponseWriter, r *http.Request) {
 	currencies, err := repositories.ListAll()
 
@@ -138,7 +120,7 @@ func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 
 	convertedAmount := amount * (fromCurrency.ValueInUSD / toCurrency.ValueInUSD)
 
-	var conversion CurrencyConversionResponse
+	var conversion responses.CurrencyConversionResponse
 
 	conversion.ConvertedAmount = convertedAmount
 
@@ -157,10 +139,84 @@ func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 
 	responseApiHGBrasil, err := requests.APIHGBrasil()
-	resposeApiCoinbase, err := requests.APICoinbase()
 
-	fmt.Println(responseApiHGBrasil.Results.Currencies.EUR.Sell, err, resposeApiCoinbase)
+	BTCApiCoinbase, err := requests.APICoinbase("BTC")
 
-	responses.JSON(w, http.StatusOK, resposeApiCoinbase)
+	ETHApiCoinbase, err := requests.APICoinbase("ETH")
 
+	BRLInUSD := 1 / responseApiHGBrasil.Results.Currencies.USD.Sell
+	_, err = UpdateValueInUSD("BRL", BRLInUSD)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	EURInUSD := responseApiHGBrasil.Results.Currencies.EUR.Sell / responseApiHGBrasil.Results.Currencies.USD.Sell
+
+	_, err = UpdateValueInUSD("EUR", EURInUSD)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	BTCInUSD, err := strconv.ParseFloat(BTCApiCoinbase.Data.Amount, 10)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	_, err = UpdateValueInUSD("BTC", BTCInUSD)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	ETHInUSD, err := strconv.ParseFloat(ETHApiCoinbase.Data.Amount, 10)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	_, err = UpdateValueInUSD("ETH", ETHInUSD)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	var currentsQuotes responses.CurrentQuoteResponse
+
+	currentsQuotes.Message = "Updated Quotes!"
+	currentsQuotes.BRL = fmt.Sprintf("%f USD", BRLInUSD)
+	currentsQuotes.EUR = fmt.Sprintf("%f USD", EURInUSD)
+	currentsQuotes.BTC = fmt.Sprintf("%f USD", BTCInUSD)
+	currentsQuotes.ETH = fmt.Sprintf("%f USD", ETHInUSD)
+	currentsQuotes.Source = "Exchange data provided by HGBrasil and cryptocurrency by Coinbase"
+
+	responses.JSON(w, http.StatusOK, currentsQuotes)
+
+}
+
+func UpdateValueInUSD(code string, ValueInUSD float64) (models.Currency, error) {
+
+	currency, err := repositories.GetByCode(code)
+	if err != nil {
+
+		return currency, err
+	}
+	currency.Updated_at = time.Now()
+	currency.ValueInUSD = ValueInUSD
+
+	err = repositories.Update(currency, currency.ID)
+	if err != nil {
+
+		return currency, err
+	}
+
+	return currency, err
 }

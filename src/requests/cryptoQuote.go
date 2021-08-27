@@ -17,30 +17,35 @@ type ApiCoinbaseCrypto struct {
 	Amount   string `json:"amount"`
 }
 
-func APICoinbase(crypto string) (ApiCoinbase, error) {
+func APICoinbase(canal chan<- ApiCoinbase, crypto string) {
 	responseApiCoinbase := ApiCoinbase{}
 
 	url := fmt.Sprintf("https://api.coinbase.com/v2/prices/%s-USD/sell", crypto)
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return responseApiCoinbase, err
+		canal <- ApiCoinbase{}
+		return
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return responseApiCoinbase, err
+		canal <- ApiCoinbase{}
+		return
 	}
 	if err != nil {
 
-		return responseApiCoinbase, err
+		canal <- ApiCoinbase{}
+		return
 
 	}
 	defer resp.Body.Close()
 
 	err = json.Unmarshal(body, &responseApiCoinbase)
 	if err != nil {
-		return responseApiCoinbase, err
+		canal <- ApiCoinbase{}
+		return
 	}
 
-	return responseApiCoinbase, nil
+	canal <- responseApiCoinbase
+
 }

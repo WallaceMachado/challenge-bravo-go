@@ -7,6 +7,7 @@ import (
 	"challeng-bravo/src/responses"
 	"challeng-bravo/src/validations"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -157,14 +158,57 @@ func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 
 func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 
-	responseApiHGBrasil, err := requests.APIHGBrasil()
+	chanelBTCApiCoinbase := make(chan requests.ApiCoinbase)
+	chanelETHApiCoinbase := make(chan requests.ApiCoinbase)
+	chanelApiHGBrasil := make(chan requests.ApiHGBrasil)
 
-	BTCApiCoinbase, err := requests.APICoinbase("BTC")
+	go requests.APICoinbase(chanelBTCApiCoinbase, "BTC")
+	go requests.APICoinbase(chanelETHApiCoinbase, "ETH")
+	go requests.APIHGBrasil(chanelApiHGBrasil)
 
-	ETHApiCoinbase, err := requests.APICoinbase("ETH")
+	var (
+		responseApiHGBrasil    requests.ApiHGBrasil
+		responseApiCoinbaseBTC requests.ApiCoinbase
+		responseApiCoinbaseETH requests.ApiCoinbase
+	)
+
+	for i := 0; i < 3; i++ {
+		select {
+		case apiHGBrasil := <-chanelApiHGBrasil:
+
+			if apiHGBrasil.Results.Currencies.USD.Sell == 0 {
+
+				responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
+				return
+			}
+
+			responseApiHGBrasil = apiHGBrasil
+
+		case apiCoinbaseBTC := <-chanelBTCApiCoinbase:
+
+			if apiCoinbaseBTC.Data.Amount == "" {
+
+				responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
+				return
+
+			}
+
+			responseApiCoinbaseBTC = apiCoinbaseBTC
+
+		case apiCoinbaseETH := <-chanelETHApiCoinbase:
+
+			if apiCoinbaseETH.Data.Amount == "" {
+				responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
+				return
+			}
+
+			responseApiCoinbaseETH = apiCoinbaseETH
+
+		}
+	}
 
 	BRLInUSD := 1 / responseApiHGBrasil.Results.Currencies.USD.Sell
-	_, err = UpdateValueInUSD("BRL", BRLInUSD)
+	err := UpdateValueInUSD("BRL", BRLInUSD)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
@@ -173,35 +217,35 @@ func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 
 	EURInUSD := responseApiHGBrasil.Results.Currencies.EUR.Sell / responseApiHGBrasil.Results.Currencies.USD.Sell
 
-	_, err = UpdateValueInUSD("EUR", EURInUSD)
+	err = UpdateValueInUSD("EUR", EURInUSD)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	BTCInUSD, err := strconv.ParseFloat(BTCApiCoinbase.Data.Amount, 10)
+	BTCInUSD, err := strconv.ParseFloat(responseApiCoinbaseBTC.Data.Amount, 10)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	_, err = UpdateValueInUSD("BTC", BTCInUSD)
+	err = UpdateValueInUSD("BTC", BTCInUSD)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	ETHInUSD, err := strconv.ParseFloat(ETHApiCoinbase.Data.Amount, 10)
+	ETHInUSD, err := strconv.ParseFloat(responseApiCoinbaseETH.Data.Amount, 10)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	_, err = UpdateValueInUSD("ETH", ETHInUSD)
+	err = UpdateValueInUSD("ETH", ETHInUSD)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
@@ -221,12 +265,12 @@ func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func UpdateValueInUSD(code string, ValueInUSD float64) (models.Currency, error) {
+func UpdateValueInUSD(code string, ValueInUSD float64) error {
 
 	currency, err := repositories.GetByCode(code)
 	if err != nil {
 
-		return currency, err
+		return err
 	}
 	currency.Updated_at = time.Now()
 	currency.ValueInUSD = ValueInUSD
@@ -234,8 +278,8 @@ func UpdateValueInUSD(code string, ValueInUSD float64) (models.Currency, error) 
 	err = repositories.Update(currency, currency.ID)
 	if err != nil {
 
-		return currency, err
+		return err
 	}
 
-	return currency, err
+	return err
 }

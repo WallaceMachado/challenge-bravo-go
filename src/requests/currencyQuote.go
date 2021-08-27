@@ -26,15 +26,16 @@ type ApiHGBrasilCurrency struct {
 	Variation float64 `json:"Variation"`
 }
 
-func APIHGBrasil() (ApiHGBrasil, error) {
+func APIHGBrasil(canal chan<- ApiHGBrasil) {
 	responseApiHGBrasil := ApiHGBrasil{}
 
 	url := "https://api.hgbrasil.com/finance/quotations?key=b9524aa8"
 	response, err := http.Get(url)
 
 	if err != nil {
+		canal <- ApiHGBrasil{}
 
-		return responseApiHGBrasil, err
+		return
 
 	}
 
@@ -44,8 +45,10 @@ func APIHGBrasil() (ApiHGBrasil, error) {
 	err = json.Unmarshal(body, &responseApiHGBrasil)
 
 	if err != nil {
-		return responseApiHGBrasil, err
+		canal <- ApiHGBrasil{}
+
+		return
 	}
 
-	return responseApiHGBrasil, nil
+	canal <- responseApiHGBrasil
 }

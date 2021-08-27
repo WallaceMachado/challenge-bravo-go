@@ -49,7 +49,5 @@ func APIHGBrasil() (ApiHGBrasil, error) {
 		return responseApiHGBrasil, err
 	}
 
-	fmt.Println(responseApiHGBrasil.Results.Currencies)
-
 	return responseApiHGBrasil, nil
 }

@@ -42,7 +42,5 @@ func APICoinbase(crypto string) (ApiCoinbase, error) {
 		return responseApiCoinbase, err
 	}
 
-	fmt.Println(responseApiCoinbase.Data.Amount)
-
 	return responseApiCoinbase, nil
 }

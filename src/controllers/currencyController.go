@@ -5,6 +5,7 @@ import (
 	"challeng-bravo/src/repositories"
 	"challeng-bravo/src/requests"
 	"challeng-bravo/src/responses"
+	"challeng-bravo/src/validations"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -44,6 +45,13 @@ func CreateCurrency(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err = validations.ValidateCurrency(&currency); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	fmt.Println(currency)
+
 	currencyID, err := repositories.Create(currency)
 
 	if err != nil {
@@ -74,6 +82,11 @@ func UpdateCurrency(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err = validations.ValidateCurrency(&currency); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
 	if err = repositories.Update(currency, ID); err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
@@ -98,9 +111,15 @@ func DeleteCurrency(w http.ResponseWriter, r *http.Request) {
 
 func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 
-	to := strings.ToUpper(r.URL.Query().Get("to"))
-	from := strings.ToUpper(r.URL.Query().Get("from"))
+	to := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("to")))
+	from := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("from")))
 	amount, err := strconv.ParseFloat(r.URL.Query().Get("amount"), 10)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = validations.ValidateConversionCurrency(to, from, amount)
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return

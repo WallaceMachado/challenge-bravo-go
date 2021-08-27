@@ -2,7 +2,7 @@ package requests
 
 import (
 	"encoding/json"
-	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -30,21 +30,19 @@ func APIHGBrasil() (ApiHGBrasil, error) {
 	responseApiHGBrasil := ApiHGBrasil{}
 
 	url := "https://api.hgbrasil.com/finance/quotations?key=b9524aa8"
+	response, err := http.Get(url)
 
-	request, erro := http.NewRequest(http.MethodGet, url, nil)
-	if erro != nil {
-		fmt.Println(erro)
-	}
-	client := &http.Client{}
-	response, err := client.Do(request)
 	if err != nil {
 
 		return responseApiHGBrasil, err
 
 	}
+
+	body, err := ioutil.ReadAll(response.Body)
 	defer response.Body.Close()
 
-	err = json.NewDecoder(response.Body).Decode(&responseApiHGBrasil)
+	err = json.Unmarshal(body, &responseApiHGBrasil)
+
 	if err != nil {
 		return responseApiHGBrasil, err
 	}

@@ -1,11 +1,12 @@
 package cache
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 )
 
 var Client = redis.NewClient(&redis.Options{
@@ -14,15 +15,18 @@ var Client = redis.NewClient(&redis.Options{
 	DB:       0,
 })
 
+var ctx = context.TODO()
+
 func Save(key string, value interface{}, expiryTimeInSeconds time.Duration) {
-	expiryTimeInNanoSeconds := expiryTimeInSeconds * 1000000000
 
-	valueMarshel, err := json.Marshal(value)
-	if err != nil {
+	var inInterface map[string]interface{}
+	inrec, _ := json.Marshal(value)
+	json.Unmarshal(inrec, &inInterface)
 
-		fmt.Println(err)
-	}
-	err = Client.Set(key, valueMarshel, expiryTimeInNanoSeconds).Err()
+	err := Client.HSet(ctx, key, inInterface).Err()
+
+	Client.Expire(ctx, key, expiryTimeInSeconds*time.Second)
+
 	if err != nil {
 
 		fmt.Println(err)
@@ -30,18 +34,20 @@ func Save(key string, value interface{}, expiryTimeInSeconds time.Duration) {
 
 }
 
-func Recover(key string) (interface{}, error) {
+func Recover(key string) (map[string]string, error) {
 
-	data, err := Client.Get(key).Result()
+	data, err := Client.HGetAll(ctx, key).Result()
 	if err != nil {
 		return nil, err
 	}
+
 	return data, nil
+
 }
 
 func Delete(key string) {
 
-	err := Client.Del(key)
+	err := Client.Del(ctx, key)
 	if err != nil {
 		fmt.Println(err)
 	}

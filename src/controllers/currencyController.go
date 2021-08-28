@@ -158,133 +158,128 @@ func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 }
 
 func CurrentQuote(w http.ResponseWriter, r *http.Request) {
-	/*
-		var (
-			USD models.Currency
-			EUR models.Currency
-			BTC models.Currency
-			ETH models.Currency
-		) */
 
-	currenciesInCache, _ := cache.Recover("currencies")
-	if currenciesInCache != nil {
-
-		fmt.Println(currenciesInCache)
-
-	}
-
-	fmt.Println(currenciesInCache)
-
-	chanelBTCApiCoinbase := make(chan requests.ApiCoinbase)
-	chanelETHApiCoinbase := make(chan requests.ApiCoinbase)
-	chanelApiHGBrasil := make(chan requests.ApiHGBrasil)
-
-	go requests.APICoinbase(chanelBTCApiCoinbase, "BTC")
-	go requests.APICoinbase(chanelETHApiCoinbase, "ETH")
-	go requests.APIHGBrasil(chanelApiHGBrasil)
-
-	var (
-		responseApiHGBrasil    requests.ApiHGBrasil
-		responseApiCoinbaseBTC requests.ApiCoinbase
-		responseApiCoinbaseETH requests.ApiCoinbase
-	)
-
-	for i := 0; i < 3; i++ {
-		select {
-		case apiHGBrasil := <-chanelApiHGBrasil:
-
-			if apiHGBrasil.Results.Currencies.USD.Sell == 0 {
-
-				responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
-				return
-			}
-
-			responseApiHGBrasil = apiHGBrasil
-
-		case apiCoinbaseBTC := <-chanelBTCApiCoinbase:
-
-			if apiCoinbaseBTC.Data.Amount == "" {
-
-				responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
-				return
-
-			}
-
-			responseApiCoinbaseBTC = apiCoinbaseBTC
-
-		case apiCoinbaseETH := <-chanelETHApiCoinbase:
-
-			if apiCoinbaseETH.Data.Amount == "" {
-				responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
-				return
-			}
-
-			responseApiCoinbaseETH = apiCoinbaseETH
-
+	currentQuoteInCache, _ := cache.Recover("currentQuote")
+	if len(currentQuoteInCache) > 0 {
+		data, _ := json.Marshal(currentQuoteInCache)
+		var result responses.CurrentQuoteResponse
+		err := json.Unmarshal(data, &result)
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
 		}
+
+		responses.JSON(w, http.StatusOK, result)
+
+	} else {
+
+		chanelBTCApiCoinbase := make(chan requests.ApiCoinbase)
+		chanelETHApiCoinbase := make(chan requests.ApiCoinbase)
+		chanelApiHGBrasil := make(chan requests.ApiHGBrasil)
+
+		go requests.APICoinbase(chanelBTCApiCoinbase, "BTC")
+		go requests.APICoinbase(chanelETHApiCoinbase, "ETH")
+		go requests.APIHGBrasil(chanelApiHGBrasil)
+
+		var (
+			responseApiHGBrasil    requests.ApiHGBrasil
+			responseApiCoinbaseBTC requests.ApiCoinbase
+			responseApiCoinbaseETH requests.ApiCoinbase
+		)
+
+		for i := 0; i < 3; i++ {
+			select {
+			case apiHGBrasil := <-chanelApiHGBrasil:
+
+				if apiHGBrasil.Results.Currencies.USD.Sell == 0 {
+
+					responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
+					return
+				}
+
+				responseApiHGBrasil = apiHGBrasil
+
+			case apiCoinbaseBTC := <-chanelBTCApiCoinbase:
+
+				if apiCoinbaseBTC.Data.Amount == "" {
+
+					responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
+					return
+
+				}
+
+				responseApiCoinbaseBTC = apiCoinbaseBTC
+
+			case apiCoinbaseETH := <-chanelETHApiCoinbase:
+
+				if apiCoinbaseETH.Data.Amount == "" {
+					responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
+					return
+				}
+
+				responseApiCoinbaseETH = apiCoinbaseETH
+
+			}
+		}
+
+		BRLInUSD := 1 / responseApiHGBrasil.Results.Currencies.USD.Sell
+		err := UpdateValueInUSD("BRL", BRLInUSD)
+
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		EURInUSD := responseApiHGBrasil.Results.Currencies.EUR.Sell / responseApiHGBrasil.Results.Currencies.USD.Sell
+
+		err = UpdateValueInUSD("EUR", EURInUSD)
+
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		BTCInUSD, err := strconv.ParseFloat(responseApiCoinbaseBTC.Data.Amount, 10)
+
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		err = UpdateValueInUSD("BTC", BTCInUSD)
+
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		ETHInUSD, err := strconv.ParseFloat(responseApiCoinbaseETH.Data.Amount, 10)
+
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		err = UpdateValueInUSD("ETH", ETHInUSD)
+
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		var currentsQuotes responses.CurrentQuoteResponse
+
+		currentsQuotes.Message = "Updated Quotes!"
+		currentsQuotes.BRL = fmt.Sprintf("%f USD", BRLInUSD)
+		currentsQuotes.EUR = fmt.Sprintf("%f USD", EURInUSD)
+		currentsQuotes.BTC = fmt.Sprintf("%f USD", BTCInUSD)
+		currentsQuotes.ETH = fmt.Sprintf("%f USD", ETHInUSD)
+		currentsQuotes.Source = "Exchange data provided by HGBrasil and cryptocurrency by Coinbase"
+
+		cache.Save("currentQuote", currentsQuotes, 30)
+
+		responses.JSON(w, http.StatusOK, currentsQuotes)
 	}
-
-	BRLInUSD := 1 / responseApiHGBrasil.Results.Currencies.USD.Sell
-	err := UpdateValueInUSD("BRL", BRLInUSD)
-
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	EURInUSD := responseApiHGBrasil.Results.Currencies.EUR.Sell / responseApiHGBrasil.Results.Currencies.USD.Sell
-
-	err = UpdateValueInUSD("EUR", EURInUSD)
-
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	BTCInUSD, err := strconv.ParseFloat(responseApiCoinbaseBTC.Data.Amount, 10)
-
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	err = UpdateValueInUSD("BTC", BTCInUSD)
-
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	ETHInUSD, err := strconv.ParseFloat(responseApiCoinbaseETH.Data.Amount, 10)
-
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	err = UpdateValueInUSD("ETH", ETHInUSD)
-
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	currenciesInBd, err := repositories.ListAll()
-
-	cache.Save("currencies", currenciesInBd, 60)
-	teste, err := cache.Recover("currencies")
-	fmt.Println("currencies: ", teste)
-
-	var currentsQuotes responses.CurrentQuoteResponse
-
-	currentsQuotes.Message = "Updated Quotes!"
-	currentsQuotes.BRL = fmt.Sprintf("%f USD", BRLInUSD)
-	currentsQuotes.EUR = fmt.Sprintf("%f USD", EURInUSD)
-	currentsQuotes.BTC = fmt.Sprintf("%f USD", BTCInUSD)
-	currentsQuotes.ETH = fmt.Sprintf("%f USD", ETHInUSD)
-	currentsQuotes.Source = "Exchange data provided by HGBrasil and cryptocurrency by Coinbase"
-
-	responses.JSON(w, http.StatusOK, currentsQuotes)
 
 }
 

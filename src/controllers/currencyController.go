@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"challeng-bravo/src/cache"
 	"challeng-bravo/src/models"
 	"challeng-bravo/src/repositories"
 	"challeng-bravo/src/requests"
@@ -157,6 +158,22 @@ func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 }
 
 func CurrentQuote(w http.ResponseWriter, r *http.Request) {
+	/*
+		var (
+			USD models.Currency
+			EUR models.Currency
+			BTC models.Currency
+			ETH models.Currency
+		) */
+
+	currenciesInCache, _ := cache.Recover("currencies")
+	if currenciesInCache != nil {
+
+		fmt.Println(currenciesInCache)
+
+	}
+
+	fmt.Println(currenciesInCache)
 
 	chanelBTCApiCoinbase := make(chan requests.ApiCoinbase)
 	chanelETHApiCoinbase := make(chan requests.ApiCoinbase)
@@ -251,6 +268,12 @@ func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	currenciesInBd, err := repositories.ListAll()
+
+	cache.Save("currencies", currenciesInBd, 60)
+	teste, err := cache.Recover("currencies")
+	fmt.Println("currencies: ", teste)
 
 	var currentsQuotes responses.CurrentQuoteResponse
 

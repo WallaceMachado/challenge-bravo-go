@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"challeng-bravo/src/config"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,8 +11,8 @@ import (
 )
 
 var Client = redis.NewClient(&redis.Options{
-	Addr:     "localhost:6379",
-	Password: "",
+	Addr:     config.AddrRedis,
+	Password: config.PassRedis,
 	DB:       0,
 })
 

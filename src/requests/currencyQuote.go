@@ -1,7 +1,9 @@
 package requests
 
 import (
+	"challeng-bravo/src/config"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -29,7 +31,7 @@ type ApiHGBrasilCurrency struct {
 func APIHGBrasil(canal chan<- ApiHGBrasil) {
 	responseApiHGBrasil := ApiHGBrasil{}
 
-	url := "https://api.hgbrasil.com/finance/quotations?key=b9524aa8"
+	url := fmt.Sprintf("https://api.hgbrasil.com/finance/quotations?key=%s", config.KeyApiHGBRASIL)
 	response, err := http.Get(url)
 
 	if err != nil {

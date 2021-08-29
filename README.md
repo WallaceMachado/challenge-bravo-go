@@ -82,8 +82,8 @@ foram inseridas explicitamente as variáveis de ambiente na tabela abaixo
 | Chave  |  Descrição  | Predefinição  |
 | :---: | :---: | :---: | 
 |  API_PORT | Número da porta em que o aplicativo será executado. | 5000  |
-|  STRING_CONNECTION_MONGO_DB |  String de conexão remota com o mongo |  mongodb+srv://admin:root@cluster0.pamgw.mongodb.net |
-|  NAME_MONGO_DB |  Nome do banco de dados criado no mongo  |  chBravoDb |
+|  STRING_CONNECTION_DB |  String de conexão remota com o mongo |  mongodb+srv://admin:root@cluster0.pamgw.mongodb.net |
+|  NAME_DB |  Nome do banco de dados criado no mongo  |  chBravoDb |
 |  ADRRESS_REDIS|  Aonde o Redis está sendo executado (host:port) |  localhost:6379  |
 |  PASSWORD_REDIS |  Senha do Redis |    |
 |  KEY_API_HGBRASIL|  Chave de acesso a api HGBRASIL |  b9524aa8  |
@@ -92,7 +92,7 @@ foram inseridas explicitamente as variáveis de ambiente na tabela abaixo
 
 ## Rotas
 
-| Rotas  |  HTTP Method  | Params  |  Desccrição  |
+| Rotas  |  HTTP Method  | Params  |  Descrição  |
 | :---: | :---: | :---: | :---: |
 |  /currency |  POST |  Body: ``` name ```, ``` code ``` e ``` valueInUSD ``` |  Crie uma nova moeda |
 |  /currency |  GET |  -  | Recupere uma lista com todas as moedas |

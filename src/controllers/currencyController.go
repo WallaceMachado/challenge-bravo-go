@@ -21,6 +21,7 @@ import (
 )
 
 func GetAllCurrencies(w http.ResponseWriter, r *http.Request) {
+
 	currencies, err := repositories.ListAll()
 
 	if err != nil {
@@ -28,8 +29,20 @@ func GetAllCurrencies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w, http.StatusOK, currencies)
+	currenciesInCache, _ := cache.Recover("currencies")
+	fmt.Println(len(currenciesInCache))
+	if len(currenciesInCache) == 0 {
+		inInterface := map[string]float64{}
 
+		for _, value := range currencies {
+			inInterface[value.Code] = value.ValueInUSD
+
+		}
+		cache.Save("currencies", inInterface, 120)
+
+	}
+
+	responses.JSON(w, http.StatusOK, currencies)
 }
 
 func CreateCurrency(w http.ResponseWriter, r *http.Request) {

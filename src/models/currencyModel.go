@@ -11,3 +11,7 @@ type Currency struct {
 	Created_at time.Time `json:"Created_at,omitempty"`
 	Updated_at time.Time `json:"Updated_at,omitempty"`
 }
+
+type Teste2 struct {
+	ValueInUSD float64 `json:"valueInUSD"`
+}

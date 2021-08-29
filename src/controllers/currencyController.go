@@ -20,6 +20,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type valueInUSDInCache struct {
+	ValueInUSD string `json:"valueInUSD"`
+}
+
 func GetAllCurrencies(w http.ResponseWriter, r *http.Request) {
 
 	currencies, err := repositories.ListAll()
@@ -27,19 +31,6 @@ func GetAllCurrencies(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
-	}
-
-	currenciesInCache, _ := cache.Recover("currencies")
-	fmt.Println(len(currenciesInCache))
-	if len(currenciesInCache) == 0 {
-		inInterface := map[string]float64{}
-
-		for _, value := range currencies {
-			inInterface[value.Code] = value.ValueInUSD
-
-		}
-		cache.Save("currencies", inInterface, 120)
-
 	}
 
 	responses.JSON(w, http.StatusOK, currencies)
@@ -74,6 +65,8 @@ func CreateCurrency(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	saveValueInUSdInCache(currency.Code, currency.ValueInUSD, 30)
+
 	responses.JSON(w, http.StatusOK, currencyID)
 
 }
@@ -107,6 +100,8 @@ func UpdateCurrency(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	saveValueInUSdInCache(currency.Code, currency.ValueInUSD, 30)
+
 	responses.JSON(w, http.StatusNoContent, nil)
 }
 
@@ -114,12 +109,27 @@ func DeleteCurrency(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	ID := params["id"]
 
-	err := repositories.Delete(ID)
+	currency, err := repositories.GetById(ID)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	if currency.Code == "BRL" || currency.Code == "USD" || currency.Code == "ETH" || currency.Code == "BTC" {
+		err = errors.New("Currency cannot be excluded.")
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = repositories.Delete(ID)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	cache.Delete(currency.Code)
 
 	responses.JSON(w, http.StatusNoContent, nil)
 }
@@ -140,19 +150,62 @@ func ConversionOfCurrency(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	toCurrency, err := repositories.GetByCode(to)
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
+	var (
+		toCurrencyInUSD   float64
+		fromCurrencyInUSD float64
+		toCurrency        models.Currency
+		fromCurrency      models.Currency
+	)
+
+	toCurrencyInCache, _ := cache.Recover(to)
+
+	if len(toCurrencyInCache) > 0 {
+
+		data, _ := json.Marshal(toCurrencyInCache)
+		var result valueInUSDInCache
+		err := json.Unmarshal(data, &result)
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+		toCurrencyInUSD, _ = strconv.ParseFloat(result.ValueInUSD, 10)
+
+	} else {
+		toCurrency, err := repositories.GetByCode(to)
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+		toCurrencyInUSD = toCurrency.ValueInUSD
+
+		saveValueInUSdInCache(to, toCurrencyInUSD, 30)
+
 	}
 
-	fromCurrency, err := repositories.GetByCode(from)
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
+	fromCurrencyInCache, _ := cache.Recover(from)
+
+	if len(fromCurrencyInCache) > 0 {
+		data, _ := json.Marshal(fromCurrencyInCache)
+		var result valueInUSDInCache
+		err := json.Unmarshal(data, &result)
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+		fromCurrencyInUSD, _ = strconv.ParseFloat(result.ValueInUSD, 10)
+	} else {
+		fromCurrency, err := repositories.GetByCode(from)
+		if err != nil {
+			responses.Error(w, http.StatusInternalServerError, err)
+			return
+		}
+		fromCurrencyInUSD = fromCurrency.ValueInUSD
+
+		saveValueInUSdInCache(from, fromCurrencyInUSD, 30)
+
 	}
 
-	convertedAmount := amount * (fromCurrency.ValueInUSD / toCurrency.ValueInUSD)
+	convertedAmount := amount * (fromCurrencyInUSD / toCurrencyInUSD)
 
 	var conversion responses.CurrencyConversionResponse
 
@@ -303,4 +356,12 @@ func UpdateValueInUSD(code string, ValueInUSD float64) error {
 	}
 
 	return err
+}
+
+func saveValueInUSdInCache(key string, value float64, expiryTimeInSeconds time.Duration) {
+
+	data := valueInUSDInCache{}
+	data.ValueInUSD = fmt.Sprintf("%f", value)
+	cache.Save(key, data, 30)
+
 }

@@ -50,6 +50,21 @@ func GetByCode(code string) (models.Currency, error) {
 
 }
 
+func GetById(id string) (models.Currency, error) {
+	var currency models.Currency
+
+	filter := bson.M{"_id": id}
+
+	if err := currencyCollection.FindOne(context.TODO(), filter).Decode(&currency); err != nil {
+
+		return currency, err
+
+	}
+
+	return currency, nil
+
+}
+
 func Create(currency models.Currency) (interface{}, error) {
 
 	timeNow := time.Now()

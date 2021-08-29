@@ -201,7 +201,7 @@ func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 
 			case apiCoinbaseBTC := <-chanelBTCApiCoinbase:
 
-				if apiCoinbaseBTC.Data.Amount == "" {
+				if apiCoinbaseBTC.Data.AmountFloat == 0 {
 
 					responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
 					return
@@ -212,7 +212,7 @@ func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 
 			case apiCoinbaseETH := <-chanelETHApiCoinbase:
 
-				if apiCoinbaseETH.Data.Amount == "" {
+				if apiCoinbaseETH.Data.AmountFloat == 0 {
 					responses.Error(w, http.StatusInternalServerError, errors.New("Error when trying to update quotes"))
 					return
 				}
@@ -239,12 +239,7 @@ func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		BTCInUSD, err := strconv.ParseFloat(responseApiCoinbaseBTC.Data.Amount, 10)
-
-		if err != nil {
-			responses.Error(w, http.StatusInternalServerError, err)
-			return
-		}
+		BTCInUSD := responseApiCoinbaseBTC.Data.AmountFloat
 
 		err = UpdateValueInUSD("BTC", BTCInUSD)
 
@@ -253,12 +248,7 @@ func CurrentQuote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		ETHInUSD, err := strconv.ParseFloat(responseApiCoinbaseETH.Data.Amount, 10)
-
-		if err != nil {
-			responses.Error(w, http.StatusInternalServerError, err)
-			return
-		}
+		ETHInUSD := responseApiCoinbaseETH.Data.AmountFloat
 
 		err = UpdateValueInUSD("ETH", ETHInUSD)
 

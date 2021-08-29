@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type ApiCoinbase struct {
@@ -12,9 +13,10 @@ type ApiCoinbase struct {
 }
 
 type ApiCoinbaseCrypto struct {
-	Base     string `json:"base"`
-	Currency string `json:"currency"`
-	Amount   string `json:"amount"`
+	Base        string  `json:"base"`
+	Currency    string  `json:"currency"`
+	Amount      string  `json:"amount"`
+	AmountFloat float64 `json:"amountFloat"`
 }
 
 func APICoinbase(canal chan<- ApiCoinbase, crypto string) {
@@ -41,6 +43,13 @@ func APICoinbase(canal chan<- ApiCoinbase, crypto string) {
 	defer resp.Body.Close()
 
 	err = json.Unmarshal(body, &responseApiCoinbase)
+	if err != nil {
+		canal <- ApiCoinbase{}
+		return
+	}
+
+	responseApiCoinbase.Data.AmountFloat, err = strconv.ParseFloat(responseApiCoinbase.Data.Amount, 10)
+
 	if err != nil {
 		canal <- ApiCoinbase{}
 		return

@@ -10,17 +10,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var currencyCollection = database.Db().Database("chBravoDb").Collection("currencies") // get collection "currencies" from db() which returns *mongo.Client
+var currencyCollection = database.Db().Database("chBravoDb").Collection("currencies")
 
 func ListAll() ([]models.Currency, error) {
 	var currencies []models.Currency
-	result, err := currencyCollection.Find(context.TODO(), bson.D{{}}) //returns a *mongo.Cursor
+	result, err := currencyCollection.Find(context.TODO(), bson.D{{}})
 	if err != nil {
 
 		return nil, err
 
 	}
-	for result.Next(context.TODO()) { //Next() gets the next document for corresponding cursor
+	for result.Next(context.TODO()) {
 
 		var currency models.Currency
 		err := result.Decode(&currency)
@@ -28,9 +28,9 @@ func ListAll() ([]models.Currency, error) {
 			return nil, err
 		}
 
-		currencies = append(currencies, currency) // appending document pointed by Next()
+		currencies = append(currencies, currency)
 	}
-	result.Close(context.TODO()) // close the cursor once stream of documents has exhausted
+	result.Close(context.TODO())
 
 	return currencies, nil
 }
@@ -78,10 +78,9 @@ func Create(currency models.Currency) (interface{}, error) {
 
 	}
 
-	return insertResult, nil // return the //mongodb ID of generated document
+	return insertResult, nil
 }
 
-// Atualizar altera as informações de um usuário no banco de dados
 func Update(currency models.Currency, ID string) error {
 
 	_id, err := primitive.ObjectIDFromHex(ID)
@@ -90,8 +89,7 @@ func Update(currency models.Currency, ID string) error {
 		return err
 	}
 
-	filter := bson.M{"_id": _id} // converting value to BSON type
-	// for returning updated document
+	filter := bson.M{"_id": _id}
 
 	update := bson.M{"$set": bson.M{"name": currency.Name, "code": currency.Code, "valieInUSD": currency.ValueInUSD, "updated_at": time.Now()}}
 

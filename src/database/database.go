@@ -11,15 +11,15 @@ import (
 )
 
 func Db() *mongo.Client {
-	config.Loader() // carregar variáveis de ambiente
+	config.Loader()
 
-	clientOptions := options.Client().ApplyURI(config.StringConnectionDB) // Connect to //MongoDB
+	clientOptions := options.Client().ApplyURI(config.StringConnectionDB)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		log.Fatal(err)
 
 	}
-	// Check the connection
+
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
 		log.Fatal(err)

@@ -2,7 +2,6 @@ package models
 
 import "time"
 
-//Usuario representa um usuário utilizando a rede social
 type Currency struct {
 	ID         string    `bson:"_id,omitempty" json:"id,omitempty"`
 	Name       string    `json:"name"`

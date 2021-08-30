@@ -36,7 +36,6 @@ func Loader() {
 		log.Fatal(erro)
 	}
 
-	//passando de string para inteiro
 	ApiPort, erro = strconv.Atoi(os.Getenv("API_PORT"))
 	if erro != nil {
 		ApiPort = 3000

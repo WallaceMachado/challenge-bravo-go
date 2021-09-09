@@ -32,9 +32,6 @@ No cadastro de nova moeda, rota ``` /currency ```, deverá ser informado a cota�
 * <p><a href="#iniciando-projeto">Iniciando Projeto</a></p>
 * <p><a href="#variáveis-de--ambiente">Variáveis de Ambiente</a></p>
 * <p><a href="#rotas">Rotas</a></p>
-* <p><a href="#executando-os-testes">Executando os testes</a></p>
-* <p><a href="#relatório-de-cobertura-de-testes">Relatório de cobertura de Testes</a></p>
-* <p><a href="#documentação">Documentação</a></p>
 * <p><a href="#autor">Autor</a></p>
 
 
@@ -63,10 +60,7 @@ $ git clone https://github.com/WallaceMachado/challenge-bravo.git
 # Acesse a pasta do projeto no terminal / cmd
 $ cd challenge-bravo
 
-# Instale as dependências
-$ go run main.go
-
-# Rode o projeto
+# Instale as dependências e rode o projeto
 $ go run main.go
 
 # Server is running
